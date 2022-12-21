@@ -1,57 +1,15 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {Column, useTable} from 'react-table';
-import {GiTableRow} from '../../lib/types';
+import {GifVM} from '../../shared/types';
 
 import './table.css';
+import {cols, mobileCols} from "./table.config";
 
 interface GiTableProps {
-    tableData: GiTableRow[];
+    tableData: GifVM[];
 }
 
-const cols: Column<GiTableRow>[] = [
-    {
-        Header: 'User Name',
-        accessor: 'userName',
-    },
-    {
-        Header: 'Image',
-        Cell: tableProps => (
-            <img
-                src={tableProps.row.original.imgUrl}
-                height={80}
-                alt='imgUrl'
-            />
-        ),
-        accessor: 'imgUrl',
-    },
-    {
-        Header: 'Tiny Image',
-        Cell: tableProps => (
-            <video
-                height={45}
-                src={tableProps.row.original.tinyImgUrl}
-            />
-        ),
-        accessor: 'tinyImgUrl',
-    },
-];
 
-const mobileCols: Column<GiTableRow>[] = [
-    {
-        Header: 'User Name',
-        accessor: 'userName',
-    },
-    {
-        Header: 'Image',
-        Cell: tableProps => (
-            <video
-                height={45}
-                src={tableProps.row.original.tinyImgUrl}
-            />
-        ),
-        accessor: 'tinyImgUrl',
-    },
-];
 
 export function GiTable({tableData}: GiTableProps) {
     const [isMobile, setIsMobile] = useState(false);
@@ -61,7 +19,7 @@ export function GiTable({tableData}: GiTableProps) {
             setIsMobile(event.matches);
         }
 
-        const isMobileMQ = window.matchMedia('(max-width: 600px)');
+        const isMobileMQ = window.matchMedia('(max-width: 700px)');
         isMobileMQ.addEventListener('change', handleStatusChange);
         setIsMobile(isMobileMQ.matches);
 
@@ -70,7 +28,7 @@ export function GiTable({tableData}: GiTableProps) {
         };
     }, []);
 
-    const columns: Column<GiTableRow>[] = useMemo(
+    const columns: Column<GifVM>[] = useMemo(
         () => isMobile ? mobileCols : cols,
         [isMobile],
     );
@@ -81,7 +39,7 @@ export function GiTable({tableData}: GiTableProps) {
         prepareRow,
         getTableProps,
         getTableBodyProps,
-    } = useTable<GiTableRow>({columns, data: tableData});
+    } = useTable<GifVM>({columns, data: tableData});
 
     return (
         <table {...getTableProps()} className={'table'}>

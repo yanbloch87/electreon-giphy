@@ -6,4 +6,6 @@ export const STORAGE_KEYS: Record<string, string> = {
     offset: 'giphy_offset',
     total: 'giphy_total',
     view: 'giphy_view',
+    history: 'giphy_history',
+    language: 'giphy_language',
 };

@@ -1,0 +1,43 @@
+import {Option, RatingOption} from "../../shared/types";
+
+export const ratings: RatingOption[] = [
+    {value: 'g', label: 'General audiences'},
+    {value: 'pg', label: 'Parental guidance suggested'},
+    {value: 'pg-13', label: 'Parents strongly cautioned'},
+    {value: 'r', label: 'Restricted'},
+];
+
+export const languages: Option[] = [
+    {value: "en", label: 'English'},
+    {value: "es", label: 'Spanish, Castilian'},
+    {value: "pt", label: 'Portuguese'},
+    {value: "id", label: 'Indonesian'},
+    {value: "fr", label: 'French'},
+    {value: "ar", label: 'Arabic'},
+    {value: "tr", label: 'Turkish'},
+    {value: "th", label: 'Thai'},
+    {value: "vi", label: 'Vietnamese'},
+    {value: "de", label: 'German'},
+    {value: "it", label: 'Italian'},
+    {value: "ja", label: 'Japanese'},
+    {value: "zh-CN", label: 'Chinese (Simplified)'},
+    {value: "zh-TW", label: 'Chinese (Traditional)'},
+    {value: "ru", label: 'Russian'},
+    {value: "ko", label: 'Korean'},
+    {value: "pl", label: 'Polish'},
+    {value: "nl", label: 'Dutch, Flemish'},
+    {value: "ro", label: 'Romanian, Moldavian'},
+    {value: "hu", label: 'Hungarian'},
+    {value: "sv", label: 'Swedish'},
+    {value: "cs", label: 'Czech'},
+    {value: "hi", label: 'Hindi'},
+    {value: "bn", label: 'Bengali'},
+    {value: "da", label: 'Danish'},
+    {value: "fa", label: 'Persian'},
+    {value: "tl", label: 'Tagalog'},
+    {value: "fi", label: 'Finnish'},
+    {value: "iw", label: 'Hebrew'},
+    {value: "ms", label: 'Malay'},
+    {value: "no", label: 'Norwegian'},
+    {value: "uk", label: 'Ukrainian'},
+];

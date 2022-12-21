@@ -1,14 +1,14 @@
 import React, {ChangeEvent, FormEvent} from 'react';
 import './App.css';
-import {useDidUpdateEffect, useStickyState} from './lib/hooks';
+import {useDidUpdateEffect, useStickyState} from './shared/hooks';
 import GiForm from './components/form/form';
-import {STORAGE_KEYS} from './lib/config';
-import {GiTableRow, Rating, View} from './lib/types';
+import {STORAGE_KEYS} from './shared/config';
+import {GifVM, Rating, View} from './shared/types';
 import {GiTable} from './components/table/table';
 import {getGifsData} from "./services/giphy.service";
-import {GiPaginator} from "./components/table/paginator/paginator";
-import InfiniteScroll from 'react-infinite-scroll-component';
-import {map} from "lodash";
+import {GiPaginator} from "./components/paginator/paginator";
+import InfiniteScroll from 'react-infinite-scroller';
+import {find, map, reduce} from "lodash";
 
 function App(): JSX.Element {
     const [view, setView] = useStickyState<View>('table', STORAGE_KEYS.view);
@@ -16,13 +16,23 @@ function App(): JSX.Element {
     const [limit, setLimit] = useStickyState<number>(25, STORAGE_KEYS.limit);
     const [offset, setOffset] = useStickyState<number>(0, STORAGE_KEYS.offset);
     const [total, setTotal] = useStickyState<number>(0, STORAGE_KEYS.total);
-    const [gifs, setGifs] = useStickyState<GiTableRow[]>([], STORAGE_KEYS.gifs);
-    const [rating, setRating] = useStickyState<Rating | null>('r', STORAGE_KEYS.rating);
+    const [gifs, setGifs] = useStickyState<GifVM[]>([], STORAGE_KEYS.gifs);
+    const [rating, setRating] = useStickyState<Rating>('r', STORAGE_KEYS.rating);
+    const [language, setLanguage] = useStickyState<string>('en', STORAGE_KEYS.language);
+
+    const getScrollGifs = (newGifs: GifVM[]): GifVM[] => {
+        return reduce(newGifs, (acc: GifVM[], gif: GifVM) => {
+            if (!find(acc, {imgUrl: gif.imgUrl})) {
+                acc.push(gif);
+            }
+            return acc;
+        }, gifs);
+    };
 
     const getData = async () => {
-        const {data, pagination} = await getGifsData(search, limit, offset, rating);
-        setGifs(view === 'table' ? data : [...gifs, ...data]);
-        setTotal(pagination.totalCount);
+        const {data, totalCount} = await getGifsData(search, limit, offset, rating, language);
+        setGifs(view === 'table' ? data : getScrollGifs(data));
+        setTotal(totalCount);
     };
 
     useDidUpdateEffect(() => {
@@ -54,7 +64,9 @@ function App(): JSX.Element {
                         rating={rating}
                         ratingChange={setRating}
                         search={search}
-                        searchChange={setSearch}/>
+                        searchChange={setSearch}
+                        language={language}
+                        languageChange={setLanguage}/>
 
                 <div className={'toggle-view'}>
                     <div>
@@ -91,28 +103,18 @@ function App(): JSX.Element {
                     </> :
                     <div className={'scroll-container'}>
                         <InfiniteScroll
-                            dataLength={gifs.length} //This is important field to render the next data
-                            next={() => goToPage(offset / limit + 1)}
+                            pageStart={0}
+                            loadMore={() => goToPage(offset / limit + 1)}
                             hasMore={gifs.length < total}
-                            loader={<h4>Loading...</h4>}
-                            endMessage={
-                                <p style={{textAlign: 'center'}}>
-                                    <b>Yay! You have seen it all</b>
-                                </p>
-                            }
-                            // below props only if you need pull down functionality
-                            refreshFunction={() => goToPage(0)}
-                            pullDownToRefresh
-                            pullDownToRefreshThreshold={50}
-                            pullDownToRefreshContent={
-                                <h3 style={{textAlign: 'center'}}>&#8595; Pull down to refresh</h3>
-                            }
-                            releaseToRefreshContent={
-                                <h3 style={{textAlign: 'center'}}>&#8593; Release to refresh</h3>
-                            }
-                        >
-                            {map(gifs, (gif, i) => <div key={i}><img alt={gif.userName} height={80}
-                                                                         src={gif.imgUrl}/></div>)}
+                            loader={<div className="loader" key={0}>Loading ...</div>}
+                            useWindow={false}>
+                            {map(gifs, (gif, i) => (
+                                <div className={'list-item'} key={i}>
+                                    <img alt={gif.userName}
+                                         height={80}
+                                         src={gif.imgUrl}/>
+                                </div>
+                            ))}
                         </InfiniteScroll>
                     </div>
                 }

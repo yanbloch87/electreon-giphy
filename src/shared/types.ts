@@ -2,7 +2,7 @@ export type View = 'table' | 'scroll'
 
 export type Rating = 'g' | 'pg' | 'pg-13' | 'r'
 
-export interface GiTableRow {
+export interface GifVM {
     rating: Rating;
     userName: string;
     imgUrl: string;
@@ -32,10 +32,15 @@ export interface GiphyResponse {
 }
 
 export interface GiphyResult {
-    data: GiTableRow[];
-    pagination: {
-        count: number;
-        offset: number;
-        totalCount: number;
-    }
+    data: GifVM[];
+    totalCount: number;
+}
+
+export interface Option {
+    value: string;
+    label: string;
+}
+
+export interface RatingOption extends Option {
+    value: Rating;
 }
