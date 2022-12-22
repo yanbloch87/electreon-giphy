@@ -1,6 +1,6 @@
-import React, {FormEvent} from 'react';
+import React, {FormEvent, useState} from 'react';
 import Select from 'react-select';
-import {Option, Rating, RatingOption} from '../../shared/types';
+import {GetDataParams, Option, Rating, RatingOption} from '../../shared/types';
 import {find, includes, map} from "lodash";
 import {useStickyState} from "../../shared/hooks";
 import {STORAGE_KEYS} from "../../shared/config";
@@ -10,58 +10,64 @@ import {languages, ratings} from "./form.config";
 import './form.css';
 
 interface FormFormProps {
-    handleSubmit: (e: FormEvent) => Promise<void>;
-    search: string;
-    searchChange: (search: string) => void;
-    rating: Rating | null;
-    ratingChange: (rating: Rating) => void;
-    language: string;
-    languageChange: (language: string) => void;
+    handleSubmit: (e: GetDataParams) => void;
+    currentSearch: string;
+    currentRating: Rating;
+    currentLanguage: string;
 }
 
 function GiForm({
                     handleSubmit,
-                    search,
-                    searchChange,
-                    rating,
-                    ratingChange,
-                    language,
-                    languageChange
+                    currentSearch,
+                    currentRating,
+                    currentLanguage,
                 }: FormFormProps): JSX.Element {
+    const [search, setSearch] = useState<string>(currentSearch);
+    const [rating, setRating] = useState<Rating>(currentRating);
+    const [language, setLanguage] = useState<string>(currentLanguage);
     const [history, setHistory] = useStickyState<string[]>([], STORAGE_KEYS.history);
     const selectedRating = find(ratings, {value: rating}) as RatingOption;
     const historyOptions: Option[] = map(history, h => ({
         value: h,
         label: h,
     }));
-    const selectedHistory = find(historyOptions, {value: search});
+    const selectedHistory: Option = find(historyOptions, {value: search}) as Option;
     const selectedLanguage = find(languages, {value: language});
 
     const handleCreate = (newSearch: string) => {
         if (!includes(history, newSearch)) {
             setHistory([...history, newSearch]);
         }
-        searchChange(newSearch);
+        setSearch(newSearch);
+    };
+
+    const onSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        return handleSubmit({
+            search,
+            rating,
+            language,
+        });
     };
 
     return (
-        <form onSubmit={handleSubmit} className={'form'}>
+        <form onSubmit={onSubmit} className={'form'}>
             <span className={'label'}>Free Search</span>
             <CreatableSelect className={'input'}
                              isClearable
                              options={historyOptions}
                              value={selectedHistory}
                              placeholder="Search"
-                             onChange={(newValue) => searchChange(newValue !== null ? newValue.value : '')}
+                             onChange={(newValue) => setSearch(newValue !== null ? newValue.value : '')}
                              onCreateOption={handleCreate}/>
 
             <span className={'label'}>Select Rating</span>
             <Select className={'select'} options={ratings} value={selectedRating}
-                    onChange={(e) => ratingChange((e !== null) ? e.value : 'g')}/>
+                    onChange={(e) => setRating((e !== null) ? e.value : 'g')}/>
 
             <span className={'label'}>Select Language</span>
             <Select className={'select'} options={languages} value={selectedLanguage}
-                    onChange={(e) => languageChange((e !== null) ? e.value : 'en')}/>
+                    onChange={(e) => setLanguage((e !== null) ? e.value : 'en')}/>
 
             <button type="submit" className={'btn'}>Search</button>
         </form>

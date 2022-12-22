@@ -44,3 +44,9 @@ export interface Option {
 export interface RatingOption extends Option {
     value: Rating;
 }
+
+export interface GetDataParams {
+    search: string;
+    rating: Rating;
+    language: string;
+}

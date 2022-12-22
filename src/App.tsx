@@ -1,14 +1,18 @@
-import React, {ChangeEvent, FormEvent} from 'react';
-import './App.css';
+import React, {ChangeEvent, useState} from 'react';
 import {useDidUpdateEffect, useStickyState} from './shared/hooks';
 import GiForm from './components/form/form';
 import {STORAGE_KEYS} from './shared/config';
-import {GifVM, Rating, View} from './shared/types';
+import {GetDataParams, GifVM, Rating, View} from './shared/types';
 import {GiTable} from './components/table/table';
 import {getGifsData} from "./services/giphy.service";
 import {GiPaginator} from "./components/paginator/paginator";
-import InfiniteScroll from 'react-infinite-scroller';
-import {find, map, reduce} from "lodash";
+import {find, reduce} from "lodash";
+import {GiList} from "./components/list/list";
+import './App.css';
+import {GiLoader} from "./components/loader/loader";
+
+// fix for strange behaviour
+let _offset = 0;
 
 function App(): JSX.Element {
     const [view, setView] = useStickyState<View>('table', STORAGE_KEYS.view);
@@ -19,6 +23,8 @@ function App(): JSX.Element {
     const [gifs, setGifs] = useStickyState<GifVM[]>([], STORAGE_KEYS.gifs);
     const [rating, setRating] = useStickyState<Rating>('r', STORAGE_KEYS.rating);
     const [language, setLanguage] = useStickyState<string>('en', STORAGE_KEYS.language);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    _offset = offset;
 
     const getScrollGifs = (newGifs: GifVM[]): GifVM[] => {
         return reduce(newGifs, (acc: GifVM[], gif: GifVM) => {
@@ -26,26 +32,42 @@ function App(): JSX.Element {
                 acc.push(gif);
             }
             return acc;
-        }, gifs);
+        }, [...gifs]);
     };
 
     const getData = async () => {
+        setIsLoading(true);
         const {data, totalCount} = await getGifsData(search, limit, offset, rating, language);
-        setGifs(view === 'table' ? data : getScrollGifs(data));
+        if (view === 'table') {
+            setGifs(data);
+        } else {
+            const _gifs = getScrollGifs(data);
+            setGifs(_gifs);
+        }
         setTotal(totalCount);
+        setIsLoading(false);
     };
 
     useDidUpdateEffect(() => {
         getData();
-    }, [limit, offset]);
+    }, [limit, offset, search, rating, language]);
 
-    const handleSubmit = async (e: FormEvent): Promise<void> => {
-        e.preventDefault();
-        await getData();
+    const handleSubmit = (e: GetDataParams): void => {
+        _offset = 0;
+        setOffset(0);
+        setGifs([]);
+        setSearch(e.search);
+        setRating(e.rating);
+        setLanguage(e.language);
     };
 
     const goToPage = (page: number) => {
+        _offset = page * limit;
         setOffset(page * limit);
+    };
+
+    const goToNextPage = () => {
+        goToPage(_offset / limit + 1);
     };
 
     const setPageSize = (pageSize: number) => {
@@ -61,12 +83,9 @@ function App(): JSX.Element {
         <div className="app">
             <div className={'form-container'}>
                 <GiForm handleSubmit={handleSubmit}
-                        rating={rating}
-                        ratingChange={setRating}
-                        search={search}
-                        searchChange={setSearch}
-                        language={language}
-                        languageChange={setLanguage}/>
+                        currentRating={rating}
+                        currentSearch={search}
+                        currentLanguage={language}/>
 
                 <div className={'toggle-view'}>
                     <div>
@@ -101,24 +120,13 @@ function App(): JSX.Element {
                             <GiTable tableData={gifs}/>
                         </div>
                     </> :
-                    <div className={'scroll-container'}>
-                        <InfiniteScroll
-                            pageStart={0}
-                            loadMore={() => goToPage(offset / limit + 1)}
-                            hasMore={gifs.length < total}
-                            loader={<div className="loader" key={0}>Loading ...</div>}
-                            useWindow={false}>
-                            {map(gifs, (gif, i) => (
-                                <div className={'list-item'} key={i}>
-                                    <img alt={gif.userName}
-                                         height={80}
-                                         src={gif.imgUrl}/>
-                                </div>
-                            ))}
-                        </InfiniteScroll>
-                    </div>
+                    <GiList listItems={gifs} fetchItems={goToNextPage} totalItems={total}/>
                 }
             </div>
+
+            {isLoading ? <div className={'loader-overlay'}>
+                <GiLoader/>
+            </div> : null}
         </div>
     );
 }

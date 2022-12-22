@@ -1,0 +1,18 @@
+.list-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: auto;
+    align-items: center;
+}
+
+.list-group-item {
+    list-style-type: none;
+}
+
+.list-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+}
