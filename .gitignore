@@ -24,3 +24,4 @@ yarn-error.log*
 /.idea/jsLinters/eslint.xml
 /.idea/inspectionProfiles/Project_Default.xml
 /.idea/vcs.xml
+/.env
