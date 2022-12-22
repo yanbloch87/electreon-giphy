@@ -33,7 +33,7 @@ export const getGifsData = async (search: string, limit: number, offset: number,
             };
         }
     } catch (err) {
-        console.log(err);
+        console.error(err);
         return {
             data: [],
             totalCount: 0,
